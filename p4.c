@@ -28,16 +28,16 @@
 
 //PROTOTYPES
 struct node *newNode(int idflag, char *strArr);
-int tokenizeID(char *codeLine, int index, char *strArr[]);
+//int tokenizeID(char *codeLine, int index, char *strArr[]);
 
 
 
 
 
-//    struct identifier{
-//        char idArr[11]; //this will hold one identifier, max length 11
-//        struct node *listptr; //this will to a linked list that stores all the source code containing the identifier after
-//    };
+    typedef struct labels{
+        char identifier[10]; //this will hold one identifier, max length 11
+        //struct node *listptr; //this will to a linked list that stores all the source code containing the identifier after
+    }label;
 
 //Linked List
     struct node{
@@ -51,6 +51,7 @@ int main(int argc, char *argv[])
 {
 
     struct node *head, *tail;
+
 
 
 
@@ -98,11 +99,14 @@ int main(int argc, char *argv[])
     }
 
     char fileLine[81];
-    char * varArr[100], * flowArr[100]; //holds the variable labels
+    label varLab[100], flowLab[100];
+    //char * varArr[100], * flowArr[100]; //holds the variable labels
     int section = DataArea;
     int counter = 1;
     int varIndex = 0;
     int flowIndex = 0;
+    char *temp;
+
 //  loops through each line; each line is stored in fileLine
     while(fgets(fileLine,sizeof(fileLine),infileptr)){
         //strstr checks if .text is in the file line. it will be null if there is no match.
@@ -110,24 +114,40 @@ int main(int argc, char *argv[])
             section = TextArea;
             counter = 1;}
         if (section == DataArea){
-            printf("Line %d data area\n",counter);
-            if ((tokenizeID(fileLine,varIndex, &varArr)) == 1){
-            varIndex++;
-           // printf("varArr[%d] is %s\n",varIndex, varArr[varIndex]);
-            }////////////////////////////////////////////////////////////////////////
+            printf("Line %d in data area\n",counter);
+            char *token;
+            token = strtok(fileLine," \t ,"); //grabs the first word of the line
+            temp = token;
+            if(strchr(temp, ':')!= NULL){                               //checks the if it contains :
+                char temp2[12];
+                strncpy(temp2,temp,sizeof(temp2 -1 ));
+                temp2[11] = '\0'; //last char is going to be a null terminated one.
+
+               // printf("this is temp %s\n",temp);
+
+                strcpy(varLab[varIndex].identifier, temp2);
+                //varIndex++;
+                printf("this is varlab %s\n", varLab[varIndex].identifier);
+                varIndex++;
+            }
+
+
+
         }
         else if (section == TextArea){
             //read the characters in the characters in that string, cut out the comment
             //store the
             printf("Line %d text area\n",counter);
         }
+
+
         counter++;
-    }
+    }//end of whie loop
     //have to test if infileptr leaves
-//    int i;
-//    for (i = 0; i < varIndex+1;i++){
-//        printf("varArr[%d] is %s\n", i, varArr[i]);
-//    }
+
+    int i;
+    for (i = 0; i < varIndex+1;i++)
+        printf("This is the first element %s\n", varLab[i].identifier);
     //closes files
     if(fclose(infileptr) == EOF){
         printf("Error in closing input file.");
@@ -144,17 +164,17 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-//tokenizes a source code, and then puts the identifiers into a label array
-int tokenizeID(char *codeLine, int index, char *strArr[]){
-    char *token;
-    token = strtok(codeLine," \t ,"); //grabs the first word of the line
-    if(strchr(token, ':')){                               //checks the if it contains :
-        strArr[index] = token;
-        printf("token is %s\nStrArr[%d] is %s\n", token, index, strArr[index]);
-        return 1;
-    }
-    return 0;
-}
+//Purpose is grab the first word
+//
+//int tokenizeID(char *codeLine, char *tempstring){
+//    char *token;
+//    token = strtok(codeLine," \t ,"); //grabs the first word of the line
+//    if(strchr(token, ':')){                               //checks the if it contains :
+//        tempstring = token;
+//        return 1;
+//    }
+//    return 0;
+//}
 
 
 
