@@ -28,7 +28,7 @@
 
 //PROTOTYPES
 struct node *newNode(int idflag, char *strArr);
-int tokenizeID(char *codeLine, int wordCountIndex, char *strArr[]);
+int tokenizeID(char *codeLine, int index, char *strArr[]);
 
 
 
@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
 {
 
     struct node *head, *tail;
-    char *varArr[100], *flowArr[100]; //holds the variable labels
+
 
 
 //    char *varArrPtr, **flowArrPtr; //pointer to the a string of characters
@@ -98,35 +98,36 @@ int main(int argc, char *argv[])
     }
 
     char fileLine[81];
+    char * varArr[100], * flowArr[100]; //holds the variable labels
     int section = DataArea;
     int counter = 1;
+    int varIndex = 0;
+    int flowIndex = 0;
 //  loops through each line; each line is stored in fileLine
     while(fgets(fileLine,sizeof(fileLine),infileptr)){
         //strstr checks if .text is in the file line. it will be null if there is no match.
         if(strstr(fileLine,".text")!= NULL){
             section = TextArea;
-            counter = 1;
-        }
+            counter = 1;}
         if (section == DataArea){
-           printf("Line %d data area\n",counter);
-
-           //tokenize and find all identifiers with character ':'
-
-           tokenizeID(varArr,fileLine);
-
-
-
+            printf("Line %d data area\n",counter);
+            if ((tokenizeID(fileLine,varIndex, &varArr)) == 1){
+            varIndex++;
+           // printf("varArr[%d] is %s\n",varIndex, varArr[varIndex]);
+            }////////////////////////////////////////////////////////////////////////
         }
         else if (section == TextArea){
             //read the characters in the characters in that string, cut out the comment
             //store the
             printf("Line %d text area\n",counter);
         }
-
         counter++;
     }
     //have to test if infileptr leaves
-
+//    int i;
+//    for (i = 0; i < varIndex+1;i++){
+//        printf("varArr[%d] is %s\n", i, varArr[i]);
+//    }
     //closes files
     if(fclose(infileptr) == EOF){
         printf("Error in closing input file.");
@@ -144,14 +145,15 @@ int main(int argc, char *argv[])
 }
 
 //tokenizes a source code, and then puts the identifiers into a label array
-int tokenizeID(char *codeLine, int wordCountIndex, char *strArr[]){
+int tokenizeID(char *codeLine, int index, char *strArr[]){
     char *token;
-    int indexCount = 0;
     token = strtok(codeLine," \t ,"); //grabs the first word of the line
     if(strchr(token, ':')){                               //checks the if it contains :
-        strArr[wordCountIndex++] = token;
-        return wordCountIndex;
+        strArr[index] = token;
+        printf("token is %s\nStrArr[%d] is %s\n", token, index, strArr[index]);
+        return 1;
     }
+    return 0;
 }
 
 
