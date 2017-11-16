@@ -28,6 +28,7 @@
 
 //PROTOTYPES
 struct node *newNode(int idflag, char *strArr);
+//void tokenizeID(char *, int, struct labels);
 //int tokenizeID(char *codeLine, int index, char *strArr[]);
 
 
@@ -35,7 +36,7 @@ struct node *newNode(int idflag, char *strArr);
 
 
     typedef struct labels{
-        char identifier[10]; //this will hold one identifier, max length 11
+        char identifier[12]; //this will hold one identifier, max length 11
         //struct node *listptr; //this will to a linked list that stores all the source code containing the identifier after
     }label;
 
@@ -46,6 +47,8 @@ struct node *newNode(int idflag, char *strArr);
         struct node *next;
 
     };
+
+
 
 int main(int argc, char *argv[])
 {
@@ -100,36 +103,36 @@ int main(int argc, char *argv[])
 
     char fileLine[81];
     label varLab[100], flowLab[100];
-    //char * varArr[100], * flowArr[100]; //holds the variable labels
     int section = DataArea;
     int counter = 1;
     int varIndex = 0;
     int flowIndex = 0;
     char *temp;
 
-//  loops through each line; each line is stored in fileLine
-    while(fgets(fileLine,sizeof(fileLine),infileptr)){
-        //strstr checks if .text is in the file line. it will be null if there is no match.
-        if(strstr(fileLine,".text")!= NULL){
+
+    while(fgets(fileLine,sizeof(fileLine),infileptr)){                  //  loops through each line; each line is stored in fileLine
+
+        if(strstr(fileLine,".text")!= NULL){                             //strstr checks if .text is in the file line. it will be null if there is no match.
             section = TextArea;
             counter = 1;}
         if (section == DataArea){
             printf("Line %d in data area\n",counter);
+
+            //TOKENIZER//////////////////////////////////////////////////////////////////////////////////////////////
             char *token;
-            token = strtok(fileLine," \t ,"); //grabs the first word of the line
-            temp = token;
-            if(strchr(temp, ':')!= NULL){                               //checks the if it contains :
+            token = strtok(fileLine," \t ,");                           //grabs the first word of the line
+            if(strchr(token, ':')!= NULL){                               //checks the if it contains :
+                char *token2;
+                token2 = strtok(token, ":");                            //removes the semicolon
+                printf("token is %s\n", token2);
                 char temp2[12];
-                strncpy(temp2,temp,sizeof(temp2 -1 ));
-                temp2[11] = '\0'; //last char is going to be a null terminated one.
-
-               // printf("this is temp %s\n",temp);
-
+                strncpy(temp2,token2,11);                               //converts string pointer to array of chars
+                temp2[11] = '\0';                                       //last char is going to be a null terminated one.
                 strcpy(varLab[varIndex].identifier, temp2);
-                //varIndex++;
                 printf("this is varlab %s\n", varLab[varIndex].identifier);
                 varIndex++;
             }
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -138,6 +141,35 @@ int main(int argc, char *argv[])
             //read the characters in the characters in that string, cut out the comment
             //store the
             printf("Line %d text area\n",counter);
+            //CAPTURE LINES OF CODE IN TEXT AREA WITHOUT THE COMMENTS
+            char temp[81];
+            char *nocomment;
+            if(fileLine[0]=='#'){                                       //Filters lines that start with a comment
+                printf("COMMENT ALERT!");
+                continue;
+            }
+            nocomment = strtok(fileLine,"#");                           //gets the section before the #, stores it into nocomment
+            printf("%cSourceCode: %s\n",nocomment[0], nocomment);
+            //stick no comment into
+
+
+            //TOKENIZER////////////////////////////////////////////
+            char *token;
+            token = strtok(fileLine," \t ,");                           //grabs the first word of the line
+            if(strchr(token, ':')!= NULL){                               //checks the if it contains :
+                char *token2;
+                token2 = strtok(token, ":");                            //removes the semicolon
+                printf("token is %s\n", token2);
+                char temp2[12];
+                strncpy(temp2,token2,11);                               //converts string pointer to array of chars
+                temp2[11] = '\0';                                       //last char is going to be a null terminated one.
+                strcpy(flowLab[flowIndex].identifier, temp2);
+                printf("this is flowLab %s\n", flowLab[flowIndex].identifier);
+                flowIndex++;
+            }
+            /////////////////////////////////////////////////////////////////////////
+
+
         }
 
 
@@ -146,8 +178,11 @@ int main(int argc, char *argv[])
     //have to test if infileptr leaves
 
     int i;
-    for (i = 0; i < varIndex+1;i++)
-        printf("This is the first element %s\n", varLab[i].identifier);
+    for (i = 0; i < varIndex;i++)
+        printf("This is the element %d: %s Hello.\n", i, varLab[i].identifier);
+    for (i = 0; i < flowIndex;i++)
+        printf("This is the element %d: %s Hello.\n", i, flowLab[i].identifier);
+
     //closes files
     if(fclose(infileptr) == EOF){
         printf("Error in closing input file.");
@@ -166,14 +201,20 @@ int main(int argc, char *argv[])
 
 //Purpose is grab the first word
 //
-//int tokenizeID(char *codeLine, char *tempstring){
+//void tokenizeID(char *codeLine, int index, struct labels idlab[]){
 //    char *token;
-//    token = strtok(codeLine," \t ,"); //grabs the first word of the line
-//    if(strchr(token, ':')){                               //checks the if it contains :
-//        tempstring = token;
-//        return 1;
-//    }
-//    return 0;
+//            token = strtok(codeLine," \t ,"); //grabs the first word of the line
+//            if(strchr(token, ':')!= NULL){                               //checks the if it contains :
+//                char *token2;
+//                token2 = strtok(token, ":"); //removes the semicolon
+//                char temp2[12];
+//                strncpy(temp2,token2,sizeof(temp2 -1 )); //turns a string pointer to an array of chars
+//                temp2[11] = '\0'; //last char is going to be a null terminated one.
+//                strcpy(idlab[index],identifier, temp2);
+//                printf("this is varlab %s\n", idlab[index].identifier);
+//                varIndex++;
+//            }
+//    return;
 //}
 
 
