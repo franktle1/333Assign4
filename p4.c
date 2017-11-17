@@ -12,6 +12,11 @@
 #define TextArea 1
 #define DataArea -1
 
+
+//KNOWN PROBLEMS: DOES NOT READ COMMENTS, READS LINE AND PRINTS LINE OF IDENTIFIER, BUT ONLY FOR THE ONES IT READS AND NOT ACTUAL LINE
+//DOES NOT PARS=
+
+
 //continues skip the current iteration and goes to the next iteration
 //France Le
 //FL193361
@@ -26,8 +31,7 @@
 
 //when parsing
 
-//PROTOTYPES
-struct node *newNode(int idflag, char *strArr);
+
 //void tokenizeID(char *, int, struct labels);
 //int tokenizeID(char *codeLine, int index, char *strArr[]);
 
@@ -41,19 +45,24 @@ struct node *newNode(int idflag, char *strArr);
     }label;
 
 //Linked List
-    struct node{
-        char sourcecode[80];
+    typedef struct Source{
+        char line_comment[80];
+        char line_nocomment[80];
         int labelType; // if label = VarFlag, then Variable in , label = 1
-        struct node *next;
+        struct Source *next;
+    }Node;
 
-    };
-
-
+//PROTOTYPES
+Node *newNode(char *comment, char *nocomment);
+void insertNode(Node** hptr, Node** tptr, Node *newnodeptr);
+void printList(Node *h);
+void searchprint(char* target, Node *hptr);
 
 int main(int argc, char *argv[])
 {
 
-    struct node *head, *tail;
+    Node *head, *tail;
+    head = tail = NULL;
 
 
 
@@ -107,7 +116,7 @@ int main(int argc, char *argv[])
     int counter = 1;
     int varIndex = 0;
     int flowIndex = 0;
-    char *temp;
+
 
 
     while(fgets(fileLine,sizeof(fileLine),infileptr)){                  //  loops through each line; each line is stored in fileLine
@@ -124,12 +133,12 @@ int main(int argc, char *argv[])
             if(strchr(token, ':')!= NULL){                               //checks the if it contains :
                 char *token2;
                 token2 = strtok(token, ":");                            //removes the semicolon
-                printf("token is %s\n", token2);
+                //printf("token is %s\n", token2);
                 char temp2[12];
                 strncpy(temp2,token2,11);                               //converts string pointer to array of chars
                 temp2[11] = '\0';                                       //last char is going to be a null terminated one.
                 strcpy(varLab[varIndex].identifier, temp2);
-                printf("this is varlab %s\n", varLab[varIndex].identifier);
+                //printf("this is varlab %s\n", varLab[varIndex].identifier);
                 varIndex++;
             }
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -142,17 +151,26 @@ int main(int argc, char *argv[])
             //store the
             printf("Line %d text area\n",counter);
             //CAPTURE LINES OF CODE IN TEXT AREA WITHOUT THE COMMENTS
+
+
+
+
             char temp[81];
+
+            strncpy(temp,fileLine,79);
+            temp[81] = '\0';
+
+            //printf("%s\n%s\n", temp,fileLine);
+            char *comtoken;
             char *nocomment;
             if(fileLine[0]=='#'){                                       //Filters lines that start with a comment
-                printf("COMMENT ALERT!");
+                printf("COMMENT ALERT!\n");
                 continue;
             }
 
 
-            nocomment = strtok(fileLine,"#");                           //gets the section before the #, stores it into nocomment
-            printf("%cSourceCode: %s\n",nocomment[0], nocomment);
-            //STORE THE FILELINE & NOCOMMENT LINE INTO INSERTFUNCTION TO NODE LIST.
+                comtoken = strtok(fileLine, "#");
+                nocomment = comtoken;
 
 
             //TOKENIZER////////////////////////////////////////////
@@ -161,19 +179,29 @@ int main(int argc, char *argv[])
             if(strchr(token, ':')!= NULL){                               //checks the if it contains :
                 char *token2;
                 token2 = strtok(token, ":");                            //removes the semicolon
-                printf("token is %s\n", token2);
+                //printf("token is %s\n", token2);
                 char temp2[12];
                 strncpy(temp2,token2,11);                               //converts string pointer to array of chars
                 temp2[11] = '\0';                                       //last char is going to be a null terminated one.
                 strcpy(flowLab[flowIndex].identifier, temp2);
-                printf("this is flowLab %s\n", flowLab[flowIndex].identifier);
+                //printf("this is flowLab %s\n", flowLab[flowIndex].identifier);
                 flowIndex++;
-            }
+            }//if
             /////////////////////////////////////////////////////////////////////////
 
 
-        }
+                                       //gets the section before the #, stores it into nocomment
+            //printf("%cSourceCode: %s\n",nocomment[0], nocomment);
+            //STORE THE FILELINE & NOCOMMENT LINE INTO INSERTFUNCTION TO NODE LIST.
+            Node *nodeptr = newNode(temp, nocomment);
+            insertNode(&head, &tail, nodeptr);
+            printf("this is no comment: %s\n",nocomment);
 
+
+
+
+
+        } //end of text area
 
         counter++;
     }//end of whie loop
@@ -181,10 +209,27 @@ int main(int argc, char *argv[])
 
     int i;
     for (i = 0; i < varIndex;i++)
-        printf("This is the element %d: %s Hello.\n", i, varLab[i].identifier);
+        printf("This is the element %d: %s\n", i, varLab[i].identifier);
     for (i = 0; i < flowIndex;i++)
-        printf("This is the element %d: %s Hello.\n", i, flowLab[i].identifier);
+        printf("This is the element %d: %s\n", i, flowLab[i].identifier);
 
+
+
+    for (i = 0; i < varIndex;i++){
+        printf("Variable Label -%s-\n",varLab[i].identifier);
+        searchprint(varLab[i].identifier, head);
+    }
+
+    printf("\n\n\n");
+
+    for (i = 0; i < flowIndex;i++){
+
+        printf("Control Flow Label -%s-\n",flowLab[i].identifier);
+        searchprint(flowLab[i].identifier, head);
+    }
+
+
+    //printList(head);
 
     ////////////////////////////
     /*
@@ -255,13 +300,86 @@ int main(int argc, char *argv[])
 //passes indicator flag and whole source code line
 //all text stored in the new Node is going to be after .text
 //i may not need the idflag
-struct node *newNode(int idflag, char *strArr){
-    struct node* newNode = (struct node*) malloc(sizeof(struct node)); //allocates memory for new node
-    newNode->labelType = idflag;
-    strcpy(newNode->sourcecode, strArr);
+Node *newNode(char *comment, char *nocomment){
+    Node* newNode = (Node*) malloc(sizeof(Node)); //allocates memory for new node
+    strcpy(newNode->line_comment, comment);
+    strcpy(newNode->line_nocomment, nocomment);
     newNode->next = NULL;
+    printf("New Node created. Whole Line: %s\n", newNode->line_comment );
     return newNode;
 }
 
+void insertNode(Node** hptr, Node** tptr, Node *newnodeptr){
+    Node * curr = *hptr;
+    if(*hptr == NULL){
+        newnodeptr->next = *hptr;
+        *hptr = newnodeptr;
+        *tptr = newnodeptr;
+        printf("First Node created. Whole Line:\n%s\n", (*hptr)->line_comment );
+        fflush(stdout);
+        return;
+    }//if
+
+    else{
+        curr = *hptr;
+        while (curr!=NULL){
+            if (*hptr == *tptr){
+                *tptr = newnodeptr;
+                (*hptr)->next = newnodeptr;
+                //printf("Second Node created.\n");
+                fflush(stdout);
+                return;
+            }
+            else if(curr == *tptr){
+                (*tptr)->next = newnodeptr;
+                *tptr = newnodeptr;
+                //printf("Inserted at End.\n");
+                fflush(stdout);
+                return;
+            }
+            curr = curr->next;
+        }//while
+    }//else
+}//insert funct
+
+void printList(Node *h){
+    Node *curr = h;
+    if (curr == NULL){
+        printf("List is empty.\n");
+        fflush(stdout);}
+    else{
+        printf("The list is:\n");
+        int i = 0;
+        while (curr!= NULL){
+            printf("Line %d: %s\n", i, curr->line_comment);
+            fflush(stdout);
+            curr = curr->next;
+            i++;}
+            }//else
+} //end of print
+
+
+//passes the member of the array, checks the nocomment line, and prints out the source code
+void searchprint(char* target, Node *hptr){
+    Node *curr = hptr;
+    if(curr == NULL){
+        printf("No list.\n");
+        return;
+    }
+    else{
+        while(curr!= NULL){
+            if(strstr(curr->line_nocomment,target)!=NULL){          //THERES A MATCH
+                printf("%s: %s\n",target,curr->line_comment);}
+            curr = curr->next;
+        }//while
+        return;
+    }//else
+    return;
+
+}
+
+void deleteAll(Node** hptr){
+
+}
 //insert into linked list (create linked list).
 
