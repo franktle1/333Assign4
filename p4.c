@@ -153,27 +153,25 @@ int main(int argc, char *argv[])
             //CAPTURE LINES OF CODE IN TEXT AREA WITHOUT THE COMMENTS
 
 
-
-
-            char temp[81];
-
-            strncpy(temp,fileLine,79);
-            temp[81] = '\0';
-
-            //printf("%s\n%s\n", temp,fileLine);
+            printf("FileLine: %s\n", fileLine);
+            char wholecomment[80];
+            char temp[80];
             char *comtoken;
             char *nocomment;
-            if(fileLine[0]=='#'){                                       //Filters lines that start with a comment
+
+            strcpy(wholecomment,fileLine); //stores it in its own array//file line gets modified in the tokenizer
+            strcpy(temp, fileLine);
+
+            if(temp[0]=='#'){                                       //Filters lines that start with a comment
                 printf("COMMENT ALERT!\n");
                 continue;
             }
+            comtoken = strtok(temp, "#");
+            nocomment = comtoken;
 
 
-                comtoken = strtok(fileLine, "#");
-                nocomment = comtoken;
-
-
-            //TOKENIZER////////////////////////////////////////////
+            printf("this is fileline - %s\n", fileLine);
+            //TOKENIZER////////////////////////////////////////////Modifies fileLine
             char *token;
             token = strtok(fileLine," \t ,");                           //grabs the first word of the line
             if(strchr(token, ':')!= NULL){                               //checks the if it contains :
@@ -190,12 +188,16 @@ int main(int argc, char *argv[])
             /////////////////////////////////////////////////////////////////////////
 
 
+
+
+
+
                                        //gets the section before the #, stores it into nocomment
             //printf("%cSourceCode: %s\n",nocomment[0], nocomment);
             //STORE THE FILELINE & NOCOMMENT LINE INTO INSERTFUNCTION TO NODE LIST.
-            Node *nodeptr = newNode(temp, nocomment);
+            Node *nodeptr = newNode(wholecomment, nocomment);
             insertNode(&head, &tail, nodeptr);
-            printf("this is no comment: %s\n",nocomment);
+ //           printf("this is no comment: %s\n",nocomment);
 
 
 
@@ -215,21 +217,21 @@ int main(int argc, char *argv[])
 
 
 
-    for (i = 0; i < varIndex;i++){
-        printf("Variable Label -%s-\n",varLab[i].identifier);
-        searchprint(varLab[i].identifier, head);
-    }
+//    for (i = 0; i < varIndex;i++){
+//        printf("Variable Label -%s-\n",varLab[i].identifier);
+//        searchprint(varLab[i].identifier, head);
+//    }
+//
+//    printf("\n\n\n");
+//
+//    for (i = 0; i < flowIndex;i++){
+//
+//        printf("Control Flow Label -%s-\n",flowLab[i].identifier);
+//        searchprint(flowLab[i].identifier, head);
+//    }
 
-    printf("\n\n\n");
 
-    for (i = 0; i < flowIndex;i++){
-
-        printf("Control Flow Label -%s-\n",flowLab[i].identifier);
-        searchprint(flowLab[i].identifier, head);
-    }
-
-
-    //printList(head);
+    printList(head);
 
     ////////////////////////////
     /*
@@ -351,7 +353,9 @@ void printList(Node *h){
         printf("The list is:\n");
         int i = 0;
         while (curr!= NULL){
-            printf("Line %d: %s\n", i, curr->line_comment);
+            printf("Line with comment %d: %s\n", i, curr->line_comment);
+            fflush(stdout);
+            printf("Line wout comment %d: %s\n", i, curr->line_nocomment);
             fflush(stdout);
             curr = curr->next;
             i++;}
