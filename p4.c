@@ -148,9 +148,11 @@ int main(int argc, char *argv[])
                 printf("COMMENT ALERT!");
                 continue;
             }
+
+
             nocomment = strtok(fileLine,"#");                           //gets the section before the #, stores it into nocomment
             printf("%cSourceCode: %s\n",nocomment[0], nocomment);
-            //stick no comment into
+            //STORE THE FILELINE & NOCOMMENT LINE INTO INSERTFUNCTION TO NODE LIST.
 
 
             //TOKENIZER////////////////////////////////////////////
@@ -182,6 +184,36 @@ int main(int argc, char *argv[])
         printf("This is the element %d: %s Hello.\n", i, varLab[i].identifier);
     for (i = 0; i < flowIndex;i++)
         printf("This is the element %d: %s Hello.\n", i, flowLab[i].identifier);
+
+
+    ////////////////////////////
+    /*
+    Comparison function:
+    Create a Node Structure that holds two lines, line_nocomment, and line_withcomment
+    Loop through size of the label struct array until end. Run each element into a search function.
+    Search function takes in the head pointer and the member of the label struct array elemnt.
+    Compares if whether identifier is found in line_nocomment, if true, prints line_wholeline; else return;
+
+    */
+
+    /*
+    PROGRAM NEEDS A INSERT FUNCTION TO ADD IN FILELINE AND NO COMMENT LINE
+
+
+    */
+
+
+
+    ////////////////////////////////
+
+
+
+
+
+
+
+
+
 
     //closes files
     if(fclose(infileptr) == EOF){
