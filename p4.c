@@ -153,7 +153,7 @@ int main(int argc, char *argv[])
             //CAPTURE LINES OF CODE IN TEXT AREA WITHOUT THE COMMENTS
 
 
-            printf("FileLine: %s\n", fileLine);
+            //printf("FileLine: %s\n", fileLine);
             char wholecomment[80];
             char temp[80];
             char *comtoken;
@@ -162,10 +162,15 @@ int main(int argc, char *argv[])
             strcpy(wholecomment,fileLine); //stores it in its own array//file line gets modified in the tokenizer
             strcpy(temp, fileLine);
 
-            if(temp[0]=='#'){                                       //Filters lines that start with a comment
+            if(temp[0]=='#' ){                                       //Filters lines that start with a comment
                 printf("COMMENT ALERT!\n");
                 continue;
             }
+            else if(strstr(temp, "globl")!= NULL){
+               printf("GLOBL COMMAND SKIPPED.");
+               continue;}
+            else{
+
             comtoken = strtok(temp, "#");
             nocomment = comtoken;
 
@@ -198,7 +203,7 @@ int main(int argc, char *argv[])
             Node *nodeptr = newNode(wholecomment, nocomment);
             insertNode(&head, &tail, nodeptr);
  //           printf("this is no comment: %s\n",nocomment);
-
+            }//else
 
 
 
@@ -231,7 +236,7 @@ int main(int argc, char *argv[])
     }
 
 
-    //printList(head);
+    printList(head);
 
     ////////////////////////////
     /*
@@ -373,7 +378,7 @@ void searchprint(char* target, Node *hptr){
     else{
         while(curr!= NULL){
             char *token;
-            char *templine[81];
+            char templine[81];
             strncpy(templine,curr->line_nocomment,80);
             templine[80] = '\0';
             token = strtok(templine, " \t,");
