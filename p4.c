@@ -217,21 +217,21 @@ int main(int argc, char *argv[])
 
 
 
-//    for (i = 0; i < varIndex;i++){
-//        printf("Variable Label -%s-\n",varLab[i].identifier);
-//        searchprint(varLab[i].identifier, head);
-//    }
-//
-//    printf("\n\n\n");
-//
-//    for (i = 0; i < flowIndex;i++){
-//
-//        printf("Control Flow Label -%s-\n",flowLab[i].identifier);
-//        searchprint(flowLab[i].identifier, head);
-//    }
+    for (i = 0; i < varIndex;i++){
+        printf("Variable Label -%s-\n",varLab[i].identifier);
+        searchprint(varLab[i].identifier, head);
+    }
+
+    printf("\n\n\n");
+
+    for (i = 0; i < flowIndex;i++){
+
+        printf("Control Flow Label -%s-\n",flowLab[i].identifier);
+        searchprint(flowLab[i].identifier, head);
+    }
 
 
-    printList(head);
+    //printList(head);
 
     ////////////////////////////
     /*
@@ -372,8 +372,21 @@ void searchprint(char* target, Node *hptr){
     }
     else{
         while(curr!= NULL){
-            if(strstr(curr->line_nocomment,target)!=NULL){          //THERES A MATCH
-                printf("%s: %s\n",target,curr->line_comment);}
+            char *token;
+            char *templine[81];
+            strncpy(templine,curr->line_nocomment,80);
+            templine[80] = '\0';
+            token = strtok(templine, " \t,");
+            while(token != NULL){
+                token = strtok(NULL, " \t,");
+                if(token !=NULL && strstr(token,target)!=NULL){
+                    //printf("MATCH-%s-: %s\n",target,curr->line_comment);
+                    printf("%s\n",curr->line_comment);
+                    break;
+                }
+            }
+//            if(strstr(curr->line_nocomment,target)!=NULL){          //THERES A MATCH
+//                printf("%s: %s\n",target,curr->line_comment);}
             curr = curr->next;
         }//while
         return;
