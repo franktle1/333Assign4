@@ -29,16 +29,6 @@
 //char *array holds a constant string and cannot be modified. only read
 //char array[] can be modified
 
-//when parsing
-
-
-//void tokenizeID(char *, int, struct labels);
-//int tokenizeID(char *codeLine, int index, char *strArr[]);
-
-
-
-
-
     typedef struct labels{
         char identifier[12]; //this will hold one identifier, max length 11
         //struct node *listptr; //this will to a linked list that stores all the source code containing the identifier after
@@ -56,56 +46,50 @@
 Node *newNode(char *comment, char *nocomment);
 void insertNode(Node** hptr, Node** tptr, Node *newnodeptr);
 void printList(Node *h);
-void searchprint(char* target, Node *hptr);
+void deleteAll(Node** hptr);
+//void searchprint(char* target, Node *hptr);
+void searchprint(char* target, Node *hptr, FILE *outfileptr);
 
 int main(int argc, char *argv[])
 {
 
     Node *head, *tail;
     head = tail = NULL;
-
-
-
-
-//    char *varArrPtr, **flowArrPtr; //pointer to the a string of characters
-
-    //make sure to free the varArrPtr[i] when printing to file.
-    //store them using ie varArrPtr[i] = "some_identifier"
-//    varArrPtr = malloc(sizeof(char*)*100); //the array is going to hold 100 var labels
-//    flowArrPtr = malloc(sizeof(char*)*100); //array holds 100 hold 100 flow control labels
-
     FILE *infileptr; //pointer to the the input file
     FILE *outfileptr; //pointer to the output file
 
     //need to use stderr
-//    if(argc != numOfArgs){
-//        printf("Enter [./executable] [flag: -v,-b,-f][inputfilename] [outputfilename]");
-//        fflush(stdout);
-//        exit(1);
-//    }
-//
-//    char *ip;
-//    char *op;
-//    //adds .mal to file name
-//    ip = (char*)malloc (sizeof(strlen(argv[InFileArg] +5)));
-//    op = (char*)malloc(sizeof(strlen(argv[OutFileArg]+5)));
-//    strcpy(ip, argv[InFileArg]);
-//    strcpy(op, argv[OutFileArg]);
-//    strcat(ip,".mal");
-//    strcat(op, ".txt");
+    if(argc != numOfArgs){
+        printf("Enter [./executable] [flag: -v,-b,-f][inputfilename] [outputfilename]");
+        fflush(stdout);
+        exit(1);
+    }
+
+    char *ip;
+    char *op;
+    //adds .mal to file name
+    ip = (char*)malloc (sizeof(strlen(argv[InFileArg] +5)));
+    op = (char*)malloc(sizeof(strlen(argv[OutFileArg]+5)));
+    strcpy(ip, argv[InFileArg]);
+    strcpy(op, argv[OutFileArg]);
+    strcat(ip,".mal");
+    strcat(op, ".txt");
+//argv[1] has the flag
+//argv[2] has the input
+//argv[3] has the output file name
 
 
 
 //  change file name to ip when switching back to command line args
-    if((infileptr = (FILE*)(fopen("test.txt","r")))==NULL){
-        printf("Could not open %s file. Closing program.\n", /*argv[InFileArg]*/ "test.txt");
+    if((infileptr = (FILE*)(fopen(ip,"r")))==NULL){
+        printf("Could not open %s file. Closing program.\n", argv[InFileArg] /*"test.mal"*/);
         fflush(stdout);
         exit(1);
     }
 
 //  change newfile.txt back to op
-    if((outfileptr = (FILE*)(fopen("newfile.txt","w")))==NULL){
-        printf("Could not open %s file. Closing program.\n", /*argv[OutFileArg]*/ "newfile.txt");
+    if((outfileptr = (FILE*)(fopen(op,"w")))==NULL){
+        printf("Could not open %s file. Closing program.\n", argv[OutFileArg] /*"newfile.txt"*/);
         fflush(stdout);
         exit(1);
     }
@@ -221,48 +205,36 @@ int main(int argc, char *argv[])
         printf("This is the element %d: %s\n", i, flowLab[i].identifier);
 
 
+//THIS PRINTS TO FILE
 
+    if(strcmp(argv[Flag],"-b")==0){
     for (i = 0; i < varIndex;i++){
-        printf("Variable Label -%s-\n",varLab[i].identifier);
-        searchprint(varLab[i].identifier, head);
-    }
-
-    printf("\n\n\n");
-
+        fprintf(outfileptr,"Variable Label -%s-\n",varLab[i].identifier);
+        searchprint(varLab[i].identifier, head, outfileptr);}
+    printf("\n\n");
     for (i = 0; i < flowIndex;i++){
 
-        printf("Control Flow Label -%s-\n",flowLab[i].identifier);
-        searchprint(flowLab[i].identifier, head);
+        fprintf(outfileptr, "Control Flow Label -%s-\n",flowLab[i].identifier);
+        searchprint(flowLab[i].identifier, head, outfileptr);}
+    }
+
+    if(strcmp(argv[Flag],"-v")==0){
+        for (i = 0; i < varIndex;i++){
+        fprintf(outfileptr,"Variable Label -%s-\n",varLab[i].identifier);
+        searchprint(varLab[i].identifier, head, outfileptr);}
+    }
+
+    if(strcmp(argv[Flag],"-f")==0){
+    for (i = 0; i < flowIndex;i++){
+        fprintf(outfileptr, "Control Flow Label -%s-\n",flowLab[i].identifier);
+        searchprint(flowLab[i].identifier, head, outfileptr);}
     }
 
 
-    printList(head);
-
-    ////////////////////////////
-    /*
-    Comparison function:
-    Create a Node Structure that holds two lines, line_nocomment, and line_withcomment
-    Loop through size of the label struct array until end. Run each element into a search function.
-    Search function takes in the head pointer and the member of the label struct array elemnt.
-    Compares if whether identifier is found in line_nocomment, if true, prints line_wholeline; else return;
-
-    */
-
-    /*
-    PROGRAM NEEDS A INSERT FUNCTION TO ADD IN FILELINE AND NO COMMENT LINE
 
 
-    */
-
-
-
-    ////////////////////////////////
-
-
-
-
-
-
+    //LINKED LIST DEBUGGER//////////////////////////////////////////////////
+    //printList(head);
 
 
 
@@ -278,8 +250,10 @@ int main(int argc, char *argv[])
         fflush(stdout);
     }
 
-//    free(ip);
-//    free(op);
+    deleteAll(&head);
+    printList(head);
+    free(ip);
+    free(op);
     return 0;
 }
 
@@ -369,7 +343,7 @@ void printList(Node *h){
 
 
 //passes the member of the array, checks the nocomment line, and prints out the source code
-void searchprint(char* target, Node *hptr){
+void searchprint(char* target, Node *hptr, FILE *outfileptr){
     Node *curr = hptr;
     if(curr == NULL){
         printf("No list.\n");
@@ -386,7 +360,7 @@ void searchprint(char* target, Node *hptr){
                 token = strtok(NULL, " \t,");
                 if(token !=NULL && strstr(token,target)!=NULL){
                     //printf("MATCH-%s-: %s\n",target,curr->line_comment);
-                    printf("%s\n",curr->line_comment);
+                    fprintf(outfileptr,"%s\n",curr->line_comment);
                     break;
                 }
             }
@@ -401,7 +375,19 @@ void searchprint(char* target, Node *hptr){
 }
 
 void deleteAll(Node** hptr){
+    Node * curr = *hptr;
+    Node * next;
 
+    if(*hptr == NULL){
+        printf("Nothing in list.\n");
+        return;
+    }
+    while(curr != NULL){
+    next = curr->next;
+    free(curr);
+    curr = next;
+    }
+    *hptr = NULL;
 }
 //insert into linked list (create linked list).
 
