@@ -40,54 +40,58 @@ int main(int argc, char *argv[])
     head = tail = NULL;
     FILE *infileptr; //pointer to the the input file
     FILE *outfileptr; //pointer to the output file
-
+    //ARG CHECKING
     if(argc != numOfArgs){
-        printf("Enter [./executable] [flag: -v,-b,-f][inputfilename] [outputfilename]");
+        printf("Enter [./executable] [flag: -v,-b,-f][inputfilename] [outputfilename]\n");
         fflush(stdout);
         exit(1);}
-    if (strcmp(argv[Flag],"-b") != 0){
-        printf("Please enter a proper flag.");
-        fflush(stdout);
-        exit(1);}
-    if (strcmp(argv[Flag],"-v") != 0){
-        printf("Please enter a proper flag.");
-        fflush(stdout);
-        exit(1);}
-    if (strcmp(argv[Flag],"-f") != 0){
-        printf("Please enter a proper flag.");
+    //FLAG CHECKING
+    if (strcmp(argv[Flag],"-b") == 0 || strcmp(argv[Flag],"-v") == 0 ||strcmp(argv[Flag],"-f") == 0 ){
+        printf("Good job. Correct flag\n");}
+    else{
+        printf("Please enter a proper flag.\n");
         fflush(stdout);
         exit(1);}
 
-    //Stores the name of the file
-    char *ip;
-    char *op;
-    //adds .mal to input file name; adds .txt to output file name
-    ip = (char*)malloc (sizeof(strlen(argv[InFileArg] +5)));
-    op = (char*)malloc(sizeof(strlen(argv[OutFileArg]+5)));
-    strcpy(ip, argv[InFileArg]);
-    strcpy(op, argv[OutFileArg]);
-    strcat(ip,".mal");
-    strcat(op, ".txt");
+//    //Stores the name of the file
+
+//     IN CASE I WANTED TO ASK FOR JUST THE FILE NAMES
+//    char *ip;
+//    char *op;
+//    ip = (char*)malloc (sizeof(strlen(argv[InFileArg])+5));
+//    op = (char*)malloc(sizeof(strlen(argv[OutFileArg])+5));
+//    strcpy(ip, argv[InFileArg]);
+//    strcpy(op, argv[OutFileArg]);
+//    strcpy(ip, "<file extension>";
+//    strcpy(op, "<file extension>";
+
 
     //ERROR CHECKING FOR OPENING FILES
-    if((infileptr = (FILE*)(fopen(ip,"r")))==NULL){
-        int errnum;
-        errnum = errno;
-        fprintf(stderr, "Value of errno:%d\n", errno);
-        perror("Error printed by perror.");
-        fprintf(stderr,"Error opening file:%s\n", strerror(errnum));
+    if((infileptr = (FILE*)(fopen(argv[InFileArg],"r")))==NULL){
         printf("Could not open %s file. Closing program.\n", argv[InFileArg] /*"test.mal"*/);
         fflush(stdout);
+        int errnum;
+        errnum = errno;
+        fprintf(stderr, "Value of errno:%d\n", errno);
+        fflush(stdout);
+        perror("Error printed by perror.");
+        fflush(stdout);
+        //printf(stderr,"Error opening file:%s\n", strerror(errnum));
         exit(1);}
-    if((outfileptr = (FILE*)(fopen(op,"w")))==NULL){
+    if((outfileptr = (FILE*)(fopen(argv[OutFileArg],"w")))==NULL){
+        printf("Could not open %s file. Closing program.\n", argv[OutFileArg] /*"newfile.txt"*/);
+        fflush(stdout);
         int errnum;
         errnum = errno;
         fprintf(stderr, "Value of errno:%d\n", errno);
         perror("Error printed by perror.");
-        fprintf(stderr,"Error opening file:%s\n", strerror(errnum));
-        printf("Could not open %s file. Closing program.\n", argv[OutFileArg] /*"newfile.txt"*/);
-        fflush(stdout);
+        //printf(stderr,"Error opening file:%s\n", strerror(errnum));
         exit(1);}
+
+    /////////////////////////////////////////////////////////
+
+
+    ////////////////////////
 
     //DATA FIELDS
     char fileLine[81];
@@ -97,6 +101,7 @@ int main(int argc, char *argv[])
     int flowIndex = 0;
 
     while(fgets(fileLine,sizeof(fileLine),infileptr)){                  //  loops through each line; each line is stored in fileLine
+
         if(strstr(fileLine,".text")!= NULL){                             //strstr checks if .text is in the file line. it will be null if there is no match.
             section = TextArea;}
         if (section == DataArea){
@@ -104,26 +109,39 @@ int main(int argc, char *argv[])
         }
 //      Section does two things: 1. Puts all Control Flow Labels into its struct array. 2. Stores Original Code, and Non-Commented Code into an array.
         else if (section == TextArea){
+            //in this case, I was suggested to use const rather than use a bunch of temp values. Will be updated after project.
             char wholecomment[80];
             char *nocomment;
             char temp[80];
             char *comtoken;
+            char tempid[81];
+            char idtoken[81];
+            char* temp32;
+
 
             strcpy(wholecomment,fileLine);                              //stores it in its own array//file line gets modified in the tokenizer
             strcpy(temp, fileLine);
+            strcpy(idtoken, fileLine);
+            temp32 = strtok(idtoken, " \t");                           //used to ignore any identifiers like .globl or .text
+            strcpy(tempid, temp32);
+
+
             if(temp[0]=='#' ){                                          //Filters lines that start with a comment
-                printf("COMMENT ALERT!\n");
+                printf("COMMENT SKIPPED!\n");
                 continue;}
-            else if(strstr(temp, "globl")!= NULL){                      //Filters out Control Flow used in globl
-               printf("GLOBL COMMAND SKIPPED.");
+            //requires tokenized version of temp because \n and white space
+
+            if(tempid[0] == '.'){                                    //Filters out Control Flow used in identifiers
+               printf("IDENTIFIER SKIPPED.\n");
                continue;}
-            else{
+
+
             comtoken = strtok(temp, "#");
             nocomment = comtoken;                                       //Stores Non-Commented Code into variable
             tokenizeID(fileLine, flowLab, &flowIndex);                  //TOKENIZER - for flow characters; stores flow control chars in array
             Node *nodeptr = newNode(wholecomment, nocomment);           //STORE THE FILELINE & NOCOMMENT LINE INTO INSERTFUNCTION TO NODE LIST.
             insertNode(&head, &tail, nodeptr);
-            }//else
+
         } //end of text area
     }//end of whie loop
 
@@ -164,22 +182,27 @@ int main(int argc, char *argv[])
         int errnum;
         errnum = errno;
         fprintf(stderr, "Value of errno:%d\n", errno);
+        fflush(stdout);
         perror("Error printed by perror.");
-        fprintf(stderr,"Error closing file:%s\n", strerror(errnum));
+        fflush(stdout);
+        //fprintf(stderr,"Error closing file:%s\n", strerror(errnum));
+        fflush(stdout);
         printf("Error in closing input file.");
         fflush(stdout);}
     if(fclose(outfileptr) == EOF){
         int errnum;
         errnum = errno;
         fprintf(stderr, "Value of errno:%d\n", errno);
+        fflush(stdout);
         perror("Error printed by perror.");
-        fprintf(stderr,"Error closing file:%s\n", strerror(errnum));
+        fflush(stdout);
+        //fprintf(stderr,"Error closing file:%s\n", strerror(errnum));
         printf("Error in closing output file.");
         fflush(stdout);}
     deleteAll(&head);                                   //removes all nodes
     printList(head);                                    //Debugging tool; Checks that all lines are copied correctly into the linked list
-    free(ip);                                           //Deallocates memory from file pointer names
-    free(op);
+//    free(ip);                                           //Deallocates memory from file pointer names
+//    free(op);
     return 0;
 }
 
@@ -274,7 +297,7 @@ void searchprint(char* target, Node *hptr, FILE *outfileptr){
             token = strtok(templine, " \t,");
             while(token != NULL){
                 token = strtok(NULL, " \t,");
-                if(token !=NULL && strstr(token,target)!=NULL){
+                if(token !=NULL && strcmp(token,target) == 0){
                     //printf("MATCH-%s-: %s\n",target,curr->line_comment);
                     fprintf(outfileptr,"%s",curr->line_comment);
                     break;}
